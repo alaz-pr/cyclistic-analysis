@@ -1,0 +1,266 @@
+-- =================================================
+-- Cyclistic Bike-Share Case Study - SQL Analysis
+-- Database: cyclistic.db (SQLite)
+-- Tables: trips_2019_q1 & trips_2020_q1
+-- =================================================
+
+-- *** STEP 1 - Data Exploration *** --
+
+-- Preview the data:
+SELECT * FROM trips_2019_q1 LIMIT 10;
+SELECT * FROM trips_2020_q1 LIMIT 10;
+
+-- Count total rows in each table:
+SELECT '2019 Q1' as dataset, COUNT (*) AS total_rows FROM trips_2019_q1
+UNION ALL
+SELECT '2020 Q1',            COUNT (*)               FROM trips_2020_q1;
+
+-- Check user types in each year:
+-- NOTE: 2019 uses 'Subscriber'/'Customer', 2020 uses 'member'/'casual' -- 
+SELECT DISTINCT usertype FROM trips_2019_q1;
+SELECT DISTINCT member_casual FROM trips_2020_q1;
+
+-- Check for NULLs in key columns (2019):
+SELECT 
+	SUM(CASE WHEN start_time IS NULL THEN 1 ELSE 0 END) AS null_started_at,
+	SUM (CASE WHEN end_time IS NULL THEN 1 ELSE 0 END) AS null_ended_at,
+	SUM(CASE WHEN from_station_name IS NULL THEN 1 ELSE 0 END) AS null_start_station,
+	SUM(CASE WHEN to_station_name IS NULL THEN 1 ELSE 0 END) AS null_end_station,
+	SUM(CASE WHEN usertype IS NULL THEN 1 ELSE 0 END) AS null_member_station
+FROM trips_2019_q1;
+
+-- Check for NULLs in key columns (2020):
+SELECT
+	SUM(CASE WHEN started_at IS NULL THEN 1 ELSE 0 END) AS null_started_at,
+	SUM(CASE WHEN ended_at IS NULL THEN 1 ELSE 0 END) AS null_ended_at,
+	SUM(CASE WHEN start_station_name IS NULL THEN 1 ELSE 0 END) AS null_start_station,
+	SUM(CASE WHEN end_station_name IS NULL THEN 1 ELSE 0 END) AS null_end_station,
+	SUM(CASE WHEN member_casual IS NULL THEN 1 ELSE 0 END) AS null_member_casual
+FROM trips_2020_q1;
+
+-- *** STEP 2 - Data Cleaning *** --
+
+-- Create a clean unified view of 2019 data:
+-- 		- Rename columns to match 2020 naming,
+--		- Standardize usertype vs. member_casual values,
+--		- Calculate ride_length_min from timestamps,
+--		- Extract day_of_week (0=Sunday in SQLite's strftime
+
+DROP VIEW IF EXISTS all_trips;
+DROP VIEW IF EXISTS trips_2019_clean;
+
+CREATE VIEW trips_2019_clean AS
+SELECT
+    CAST(trip_id AS TEXT)                               AS ride_id,
+    start_time                                          AS started_at,
+    end_time                                            AS ended_at,
+    from_station_name                                   AS start_station_name,
+    to_station_name                                     AS end_station_name,
+    CASE
+        WHEN usertype = 'Subscriber' THEN 'member'
+        WHEN usertype = 'Customer'   THEN 'casual'
+        ELSE 'unknown'
+    END                                                 AS member_casual,
+    ROUND(
+        (JULIANDAY(end_time) - JULIANDAY(start_time)) * 24 * 60
+    , 2)                                                AS ride_length_min,
+    CASE CAST(strftime('%w', start_time) AS INTEGER)
+        WHEN 1 THEN 1
+        WHEN 2 THEN 2
+        WHEN 3 THEN 3
+        WHEN 4 THEN 4
+        WHEN 5 THEN 5
+        WHEN 6 THEN 6
+        WHEN 0 THEN 7
+    END                                                 AS day_of_week,
+    CASE CAST(strftime('%w', start_time) AS INTEGER)
+        WHEN 1 THEN 'Monday'    WHEN 2 THEN 'Tuesday'
+        WHEN 3 THEN 'Wednesday' WHEN 4 THEN 'Thursday'
+        WHEN 5 THEN 'Friday'    WHEN 6 THEN 'Saturday'
+        WHEN 0 THEN 'Sunday'
+    END                                                 AS day_name,
+    '2019-Q1'                                           AS source_year
+FROM trips_2019_q1
+WHERE
+    start_time IS NOT NULL
+    AND end_time IS NOT NULL
+    AND JULIANDAY(end_time) > JULIANDAY(start_time)
+    AND (JULIANDAY(end_time) - JULIANDAY(start_time)) * 24 * 60 >= 1
+    AND (JULIANDAY(end_time) - JULIANDAY(start_time)) * 24 * 60 <= 1440
+    AND from_station_name NOT LIKE '%TEST%'
+    AND from_station_name NOT LIKE '%DIVVY%';
+	
+-- Create a clean view of 2020 data (same shape as above)
+
+DROP VIEW IF EXISTS all_trips;
+DROP VIEW IF EXISTS trips_2020_clean;
+
+CREATE VIEW trips_2020_clean AS
+SELECT
+    ride_id,
+    started_at,
+    ended_at,
+    start_station_name,
+    end_station_name,
+    member_casual,
+    ROUND(
+        (JULIANDAY(ended_at) - JULIANDAY(started_at)) * 24 * 60
+    , 2)                                                AS ride_length_min,
+    CASE CAST(strftime('%w', started_at) AS INTEGER)
+        WHEN 1 THEN 1
+        WHEN 2 THEN 2
+        WHEN 3 THEN 3
+        WHEN 4 THEN 4
+        WHEN 5 THEN 5
+        WHEN 6 THEN 6
+        WHEN 0 THEN 7
+    END                                                 AS day_of_week,
+    CASE CAST(strftime('%w', started_at) AS INTEGER)
+        WHEN 1 THEN 'Monday'    WHEN 2 THEN 'Tuesday'
+        WHEN 3 THEN 'Wednesday' WHEN 4 THEN 'Thursday'
+        WHEN 5 THEN 'Friday'    WHEN 6 THEN 'Saturday'
+        WHEN 0 THEN 'Sunday'
+    END                                                 AS day_name,
+    '2020-Q1'                                           AS source_year
+FROM trips_2020_q1
+WHERE
+    started_at IS NOT NULL
+    AND ended_at IS NOT NULL
+    AND JULIANDAY(ended_at) > JULIANDAY(started_at)
+    AND (JULIANDAY(ended_at) - JULIANDAY(started_at)) * 24 * 60 >= 1
+    AND (JULIANDAY(ended_at) - JULIANDAY(started_at)) * 24 * 60 <= 1440
+    AND start_station_name NOT LIKE '%TEST%'
+    AND start_station_name NOT LIKE '%DIVVY%';
+
+-- Recreate combined view
+CREATE VIEW all_trips AS
+SELECT * FROM trips_2019_clean
+UNION ALL
+SELECT * FROM trips_2020_clean;
+
+-- Verify:
+SELECT source_year, COUNT(*) AS rides FROM all_trips GROUP BY source_year;
+	
+-- How many member vs casual rides are there in all_trips combined?
+SELECT COUNT(*)
+FROM all_trips
+GROUP BY member_casual;
+
+-- Percentages:
+SELECT 
+    member_casual,
+    COUNT(*) AS num_rides,
+    ROUND(COUNT(*) * 100.0 / SUM(COUNT(*)) OVER (), 1) AS pct_of_total
+FROM all_trips
+GROUP BY member_casual;
+
+-- *** STEP 3 - Data Analysis *** --
+
+-- Business question: How do annual members and casual riders
+-- use Cyclistic bikes differently?
+
+-- Overall ride length by user type:
+SELECT	
+	member_casual,
+	COUNT (*) AS total_rides,
+	ROUND(AVG(ride_length_min), 1) AS avg_ride_min,
+	ROUND(MIN(ride_length_min), 1) AS min_ride_min,
+	ROUND(MAX(ride_length_min), 1) AS max_ride_min
+FROM all_trips
+GROUP BY member_casual;
+
+-- Average ride length by user type AND day of week:
+SELECT
+	member_casual,
+	day_name,
+	day_of_week,
+	COUNT (*) AS num_rides,
+	ROUND(AVG(ride_length_min), 1) AS avg_ride_min
+FROM all_trips
+GROUP BY member_casual, day_of_week, day_name
+ORDER BY member_casual, day_of_week;
+
+-- Busiest hours of the day -When do each group ride?
+SELECT 
+	member_casual,
+	CAST(strftime('%H', started_at) AS INTEGER) AS hour_of_day,
+	COUNT(*) AS num_rides
+FROM all_trips
+GROUP BY member_casual, hour_of_day
+ORDER BY member_casual, hour_of_day;
+
+-- Most popular start stations for each user type:
+SELECT
+	member_casual,start_station_name, num_rides
+FROM (
+	SELECT
+		member_casual,
+		start_station_name,
+		COUNT(*) AS num_rides,
+		ROW_NUMBER() OVER (
+            PARTITION BY member_casual 
+            ORDER BY COUNT(*) DESC
+        ) AS rank
+	FROM all_trips
+	WHERE start_station_name IS NOT NULL
+	GROUP BY member_casual, start_station_name
+)
+WHERE rank <= 10
+ORDER BY member_casual, num_rides DESC;
+	
+-- Year-over-year comparison: Did ridership grow?
+SELECT
+	source_year,
+	member_casual,
+	COUNT(*) AS total_rides,
+	ROUND(avg(ride_length_min), 1) AS avg_ride_min
+FROM all_trips
+GROUP BY source_year, member_casual
+ORDER BY source_year, member_casual;
+
+-- Which day of the week has the most casual rides?
+SELECT day_name, COUNT(*) AS num_rides 
+FROM all_trips 
+WHERE member_casual = 'casual' 
+GROUP BY day_name 
+ORDER BY num_rides DESC LIMIT 1;
+
+-- What % of all rides are by casual riders?
+SELECT 
+    COUNT(*) AS total_rides,
+    SUM(CASE WHEN member_casual = 'casual' THEN 1 ELSE 0 END) AS casual_rides,
+    ROUND(SUM(CASE WHEN member_casual = 'casual' THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 1) AS casual_pct
+FROM all_trips;
+
+
+-- *** STEP 4 - Summary table *** --
+
+-- Save daily summary as a new TABLE:
+CREATE TABLE IF NOT EXISTS summary_by_day AS
+SELECT
+	member_casual,
+	day_name,
+	day_of_week,
+	source_year,
+	COUNT(*) AS num_rides,
+	ROUND(AVG(ride_length_min), 1) AS avg_ride_min,
+	ROUND(MIN(ride_length_min), 1) AS min_ride_min,
+	ROUND(MAX(ride_length_min), 1) AS max_ride_min
+FROM all_trips
+GROUP BY member_casual, day_of_week, day_name, source_year
+ORDER BY source_year, member_casual, day_of_week;
+
+SELECT * FROM summary_by_day;
+
+-- Save hourly summary:
+CREATE TABLE IF NOT EXISTS summary_by_hour AS
+SELECT
+	member_casual,
+	CAST(strftime('%H', started_at) AS INTEGER) AS hour_of_day,
+	source_year,
+	COUNT(*) AS num_rides
+FROM all_trips
+GROUP BY member_casual, hour_of_day, source_year
+ORDER BY source_year, member_casual, hour_of_day;
+
+SELECT * FROM summary_by_hour
