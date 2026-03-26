@@ -1,112 +1,117 @@
-# 🚲 Cyclistic Bike-Share Analysis
-### Google Professional Data Analytics Certificate Capstone Case Study
+# Cyclistic Bike-Share Analysis
 
-## Overview
-This case study analyses how **annual members** and **casual riders** use Cyclistic bike-share services differently, using real trip data from Chicago's Divvy bike-share system. The goal is to provide data-driven recommendations to convert casual riders into annual members.
+## Executive Summary  
+This project analyzes bike-share trip behavior to understand how annual members and casual riders use Cyclistic differently and how to convert more casual riders into members.
 
-> **Business Question:** How do annual members and casual riders use Cyclistic bikes differently?
+The analysis shows clear behavioral differences between the two groups. Members use the service primarily for commuting, with consistent weekday and rush-hour peaks. Casual riders take longer trips, ride mostly on weekends, and concentrate around leisure and tourist locations.
 
----
-
-## Tools & Technologies
-| Tool | Purpose |
-|---|---|
-| **Google Sheets** | Initial data exploration, calculated fields |
-| **SQL (SQLite)** | Data cleaning, transformation, and aggregation |
-| **Python** (pandas, matplotlib) | Exploratory analysis and visualisations |
-| **Tableau Public** | Interactive executive dashboard |
+The main opportunity is to target casual riders when they are most engaged—on weekends, at high-traffic leisure destinations, and before the peak riding season.
 
 ---
 
-## Data
-- **Source:** [Divvy Trip Data](https://divvybikes.com/system-data) - made available by Motivate International Inc. under this [license](https://divvybikes.com/data-license-agreement)
-- **Period:** 2019 Q1 & 2020 Q1
-- **Size:** 791,746 rides after cleaning
-- **Note:** Raw CSV files are not included in this repository due to size. Download directly from the source above.
+## Business Problem  
+Cyclistic aims to increase the number of annual members. To support this goal, the company needs to understand how casual riders differ from members in their usage patterns.
+
+The key questions are:
+- How do annual members and casual riders use Cyclistic bikes differently?  
+- What behavioral patterns distinguish the two groups?  
+- What actions could help convert more casual riders into annual members?  
 
 ---
 
-## Data Cleaning
-The following steps were applied in SQL before analysis:
-- Removed rides with negative or zero duration
-- Removed rides under 1 minute (false starts / re-docking errors)
-- Removed rides over 24 hours (forgotten to dock)
-- Removed test and maintenance stations (HQ QR, DIVVY)
-- Standardised user type labels: `Subscriber` → `member`, `Customer` → `casual`
-- Aligned column names between 2019 and 2020 datasets using SQL views
+## Note  
 
-**Rows removed:** 199 from 2019 Q1, 7,979 from 2020 Q1
+This project uses publicly available Divvy trip data from Q1 2019 and Q1 2020.  
+The raw datasets are not included in this repository due to size and should be downloaded from the original source.
 
 ---
 
-## Key Findings
+## Methodology  
 
-| Finding | Members | Casual Riders |
-|---|---|---|
-| Ride volume | 91% of all rides | 9% of all rides |
-| Mean ride length | 13.3 min | 85.1 min |
-| Median ride length | 8.5 min | 22.1 min |
-| Busiest days | Tuesday-Thursday | Saturday-Sunday |
-| Peak hours | 8am & 5pm (commute) | 2-3pm (leisure) |
-| Top stations | Downtown office hubs | Tourist landmarks |
-| YoY growth (Q1) | +11% | +109% |
+**Data Source**  
+- Divvy trip data provided by Motivate International Inc.  
+- Q1 2019 and Q1 2020 datasets  
+- 791,746 rides after cleaning  
 
-> **Note:** Median is used as the primary measure of ride length because the data is right-skewed. A small number of very long rides significantly inflate the mean.
+**Data Cleaning**  
+- Removed rides with zero or negative duration  
+- Removed rides under 1 minute and over 24 hours  
+- Removed test and maintenance stations  
+- Standardized rider type labels  
+- Aligned schemas between datasets using SQL  
+
+**Exploratory Analysis**  
+- Compared ride volume by rider type  
+- Measured ride length (mean and median)  
+- Analyzed patterns by day of week and hour of day  
+- Identified top start stations by rider type  
+- Compared year-over-year changes  
+
+**Visualization**  
+- Built charts in Python (pandas, matplotlib)  
+- Created an interactive dashboard in Tableau Public  
+
+👉 View the dashboard here:  
+https://public.tableau.com/views/CyclisticCaseStudyMembervsCasualRiders/CyclisticDashboard
 
 ---
 
-## Visualisations
+## Skills  
 
-### Rides by Day of Week
+- SQL (SQLite) for data cleaning and aggregation  
+- Python (pandas, matplotlib) for analysis and visualization  
+- Tableau for dashboard development  
+- Data cleaning and transformation  
+- Exploratory data analysis  
+- Behavioral segmentation  
+- Translating analysis into business recommendations  
+
+---
+
+## Results and Business Recommendations  
+
+**1. Members dominate overall ride volume**  
+Members account for most rides, while casual riders represent a smaller but valuable segment.  
+→ Focus on converting high-potential casual users rather than broad acquisition  
+
+**2. Casual riders take significantly longer trips**  
+Casual riders have much higher average and median ride lengths than members.  
+→ Emphasize value of membership for frequent or extended use  
+
+**3. Usage patterns differ by day and time**  
+Members peak on weekdays and during commuting hours, while casual riders peak on weekends and midday.  
+→ Target marketing campaigns during weekends and leisure-heavy hours  
+
+**4. Casual riders cluster around leisure locations**  
+High casual rider activity is concentrated near parks and tourist attractions.  
+→ Use location-based promotions and signage at high-traffic stations  
+
+**5. Casual ridership is growing faster than membership**  
+Casual usage increased significantly year-over-year.  
+→ Opportunity to convert a growing segment through seasonal campaigns  
+
+---
+
+## Next Steps  
+
+- Extend analysis to full-year data for seasonal trends  
+- Segment casual riders into tourists vs local users  
+- Test targeted promotions at high-traffic stations  
+- Evaluate the effectiveness of weekend and seasonal campaigns  
+- Incorporate additional user-level or behavioral data  
+
+---
+
+## Results Preview  
+
+### Rides by Day of Week  
 ![Rides by Day](charts/chart1_rides_by_day.png)
-Members dominate weekdays while casual riders are more active on weekends. A clear commuter vs leisure divide.
 
-### Median Ride Length by Day
+### Ride Length by Day  
 ![Ride Length](charts/chart2_ride_length_by_day.png)
-Casual riders take trips ~2.5x longer than members every day of the week.
 
-### Rides by Hour of Day
+### Rides by Hour  
 ![Rides by Hour](charts/chart3_rides_by_hour.png)
-Members show sharp peaks at 8 am and 5 pm, typical commute times. Casual riders peak around 2–3 pm with no commute spikes.
 
-### Year-over-Year Comparison
-![Year over Year](charts/chart4_year_over_year.png)
-Casual ridership more than doubled (+109%) from 2019 to 2020 Q1, suggesting a growing and receptive audience.
-
-### Top Start Stations
+### Top Start Stations  
 ![Top Stations](charts/chart5_top_stations.png)
-Casual riders depart from tourist landmarks (Millennium Park, Shedd Aquarium, Lake Shore Drive). Members cluster around downtown office and transit hubs.
-
----
-
-## Interactive Dashboard
-View the full interactive Tableau dashboard here:
-🔗 **[Cyclistic Case Study: Member vs Casual Riders - Tableau Public](https://public.tableau.com/views/CyclisticCaseStudyMembervsCasualRiders/CyclisticDashboard?:language=en-US&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link)*
-
----
-
-## Top 3 Recommendations
-
-**1. Weekend membership campaigns at high-traffic casual stations**
-Deploy targeted promotions at top casual stations  (Streeter Dr & Grand Ave, Lake Shore Dr & Monroe St, and Millennium Park) on Saturdays and Sundays. QR codes, posters, and on-site staff highlighting cost savings for frequent riders would reach the highest-opportunity audience at the right time and place.
-
-**2. Commuter conversion digital campaign**
-Casual riders already show some weekday usage, particularly on Fridays. A targeted digital campaign comparing the cost of pay-per-ride and annual membership for someone who rides 3–4 times per week could help convert habitual casual users. The +109% YoY growth in casual riders suggests a growing, receptive audience.
-
-**3. Seasonal campaign before peak riding season**
-Launch a membership promotion in March–April, just before Chicago's peak cycling season, to capture casual riders at the moment they are most motivated to ride regularly. Offering a limited-time discounted annual membership to existing casual riders before summer would create urgency and capitalise on seasonal enthusiasm.
-
----
-
-## Data Limitations
-- Only Q1 data available, full seasonal patterns cannot be assessed
-- Bike type analysis not possible. 2020 Q1 only records `docked_bike`; electric and classic bikes were introduced later in 2020
-- No demographic data. Age and gender are available in 2019 only and are partially missing
-- Cannot link rides to individual users, impossible to determine if casual riders are repeat users or tourists
-
----
-
-## Process
-This analysis followed the **Ask → Prepare → Process → Analyze → Share → Act** framework from the Google Data Analytics Certificate.
-
-*Data source: Motivate International Inc. [Divvy Data License Agreement](https://divvybikes.com/data-license-agreement)*# cyclistic-bike-share-analysis
