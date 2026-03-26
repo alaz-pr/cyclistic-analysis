@@ -5,7 +5,7 @@ This project analyzes bike-share trip behavior to understand how annual members 
 
 The analysis shows clear behavioral differences between the two groups. Members use the service primarily for commuting, with consistent weekday and rush-hour peaks. Casual riders take longer trips, ride mostly on weekends, and concentrate around leisure and tourist locations.
 
-The main opportunity is to target casual riders when they are most engaged—on weekends, at high-traffic leisure destinations, and before the peak riding season.
+The main opportunity is to target casual riders when they are most engaged: on weekends, at high-traffic leisure destinations, and before the peak riding season.
 
 ---
 
